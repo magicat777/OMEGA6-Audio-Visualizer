@@ -156,24 +156,24 @@ class OMEGA6App(QtWidgets.QMainWindow):
 
     def _create_toolbar(self):
         """Create main toolbar"""
-        toolbar = self.addToolBar("Main")
-        toolbar.setMovable(False)
+        self.toolbar = self.addToolBar("Main")
+        self.toolbar.setMovable(False)
 
         # Audio input selector
         input_label = QtWidgets.QLabel(" Audio Input: ")
-        toolbar.addWidget(input_label)
+        self.toolbar.addWidget(input_label)
 
         self.input_combo = QtWidgets.QComboBox()
         self.input_combo.setMinimumWidth(200)
         # Populate with audio devices
         self._populate_audio_devices()
-        toolbar.addWidget(self.input_combo)
+        self.toolbar.addWidget(self.input_combo)
 
-        toolbar.addSeparator()
+        self.toolbar.addSeparator()
 
         # FPS display
         self.fps_label = QtWidgets.QLabel(" FPS: -- ")
-        toolbar.addWidget(self.fps_label)
+        self.toolbar.addWidget(self.fps_label)
 
     def _populate_audio_devices(self):
         """Populate audio device combo box"""
@@ -331,27 +331,25 @@ class OMEGA6App(QtWidgets.QMainWindow):
 
     def _add_audio_controls(self):
         """Add audio control buttons to toolbar"""
-        toolbar = self.toolBars()[0]  # Get main toolbar
-
-        toolbar.addSeparator()
+        self.toolbar.addSeparator()
 
         # Start/Stop button
         self.audio_toggle = QtWidgets.QPushButton("⏸ Stop")
         self.audio_toggle.setCheckable(True)
         self.audio_toggle.setChecked(True)
         self.audio_toggle.clicked.connect(self._toggle_audio)
-        toolbar.addWidget(self.audio_toggle)
+        self.toolbar.addWidget(self.audio_toggle)
 
         # Refresh devices button
         refresh_btn = QtWidgets.QPushButton("🔄 Refresh")
         refresh_btn.clicked.connect(self._refresh_devices)
-        toolbar.addWidget(refresh_btn)
+        self.toolbar.addWidget(refresh_btn)
 
-        toolbar.addSeparator()
+        self.toolbar.addSeparator()
 
         # Level meters
         self.level_label = QtWidgets.QLabel(" L: -∞ dB  R: -∞ dB ")
-        toolbar.addWidget(self.level_label)
+        self.toolbar.addWidget(self.level_label)
 
     def _toggle_audio(self):
         """Toggle audio capture"""
@@ -373,10 +371,11 @@ class OMEGA6App(QtWidgets.QMainWindow):
     def _update_fps(self):
         """Update FPS display"""
         # This would calculate actual FPS
-        self.fps_label.setText(" FPS: 60 ")
+        if hasattr(self, 'fps_label'):
+            self.fps_label.setText(" FPS: 60 ")
 
         # Update audio levels
-        if self.audio_manager.is_capturing:
+        if hasattr(self, 'level_label') and self.audio_manager.is_capturing:
             l_db, r_db = self.audio_manager.get_current_level()
             self.level_label.setText(f" L: {l_db:.1f} dB  R: {r_db:.1f} dB ")
 
