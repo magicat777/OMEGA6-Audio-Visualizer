@@ -183,12 +183,23 @@ class OMEGA6App(QtWidgets.QMainWindow):
         self.input_combo.addItem("--- INPUT DEVICES ---", -1)
         for device in self.audio_manager.get_input_devices():
             icon = "🎤 " if device.is_default else "   "
-            self.input_combo.addItem(f"{icon}{device}", device.index)
+            display_name = str(device)
+            
+            # Add note for PipeWire device
+            if "pipewire" in device.name.lower():
+                display_name += " (All devices routed through PipeWire)"
+                
+            self.input_combo.addItem(f"{icon}{display_name}", device.index)
 
         self.input_combo.addItem("--- OUTPUT DEVICES (Monitoring) ---", -1)
         for device in self.audio_manager.get_output_devices():
             icon = "🔊 " if device.is_default else "   "
             self.input_combo.addItem(f"{icon}{device}", device.index)
+            
+        # Add helpful note
+        self.input_combo.addItem("--- NOTE ---", -1)
+        self.input_combo.addItem("   Scarlett 2i2 accessible via pipewire device", -1)
+        self.input_combo.addItem("   Use pavucontrol or qpwgraph to route audio", -1)
 
         # Set current device
         if self.audio_manager.current_input_device is not None:
