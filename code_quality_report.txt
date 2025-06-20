@@ -1,0 +1,41 @@
+OMEGA6 Code Quality Report
+================================================================================
+
+Black:
+Status: PASSED
+Details: Formatted
+----------------------------------------
+
+isort:
+Status: PASSED
+Details: Fixed imports
+----------------------------------------
+
+Flake8:
+Status: FAILED
+Details: plugins/enhanced_spectrum/spectrum_widget.py:6:1: F401 'logging' imported but unused
+plugins/enhanced_spectrum/spectrum_widget.py:18:1: E402 module level import not at top of file
+plugins/studio_meters/studio_meters_widget.py:12:1: E402 module level import not at top of file
+plugins/studio_meters/studio_meters_widget.py:13:1: E402 module level import not at top of file
+plugins/studio_meters/studio_meters_widget.py:15:1: E402 module level import not at top of file
+test_audio.py:11:1: E402 module level import not at top of file
+test_audio.py:13:1: E402 module level import not at top of file
+test_audio.py:15:1: E402 module level import not at top of file
+test_omega6.py:12:1: E402 module level import not at top of file
+test_omega6.py:14:1: E402 module level import not at top of file
+test_omega6.py:15:1: E402 module level import not at top of file
+10    E402 module level import not at top of file
+1     F401 'logging' imported but unused
+11
+----------------------------------------
+
+MyPy:
+Status: FAILED
+Details: audio-geometric-visualizer is not a valid Python package name
+----------------------------------------
+
+Pylint:
+Status: PASSED
+Details: Informational only
+----------------------------------------
+

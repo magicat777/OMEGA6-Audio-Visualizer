@@ -1,0 +1,31 @@
+# Core dependencies
+friture>=0.49
+numpy>=1.24.0
+scipy>=1.10.0
+PyQt5>=5.15.0
+pyqtgraph>=0.13.0
+
+# Audio processing
+sounddevice>=0.4.6
+soundcard>=0.4.2  # Fixed package name
+# pyaudio>=0.2.11  # Optional, sounddevice is sufficient
+
+# Additional visualization
+matplotlib>=3.7.0
+vispy>=0.13.0  # For potential 3D visualizations
+
+# Studio features
+pyloudnorm>=0.1.1  # For LUFS calculations
+
+# Voice detection (reuse existing)
+webrtcvad>=2.0.10
+librosa>=0.10.0
+
+# Performance
+numba>=0.57.0  # For JIT compilation
+pyFFTW>=0.13.0  # Faster FFT
+
+# Development
+pytest>=7.3.0
+black>=23.0.0
+mypy>=1.3.0
