@@ -99,8 +99,18 @@ class AudioManager:
                     self.logger.info(f"Found PipeWire/JACK device: {audio_device}")
 
             # Set defaults if not already set
-            if self.current_input_device is None and default_input is not None:
-                self.current_input_device = default_input
+            if self.current_input_device is None:
+                # Try to find and use PipeWire device by default
+                for idx, device in self.devices.items():
+                    if "pipewire" in device.name.lower() and device.is_input:
+                        self.current_input_device = idx
+                        self.logger.info(f"Auto-selected PipeWire device: {device.name}")
+                        break
+                
+                # Fall back to system default if PipeWire not found
+                if self.current_input_device is None and default_input is not None:
+                    self.current_input_device = default_input
+                    
             if self.current_output_device is None and default_output is not None:
                 self.current_output_device = default_output
 

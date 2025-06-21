@@ -84,6 +84,17 @@ class OMEGA6App(QtWidgets.QMainWindow):
 
     def _on_audio_data(self, audio_data: np.ndarray, sample_rate: int):
         """Handle incoming audio data"""
+        # Debug: Check if we're getting audio
+        level = np.max(np.abs(audio_data))
+        if hasattr(self, '_audio_count'):
+            self._audio_count += 1
+        else:
+            self._audio_count = 0
+            
+        if self._audio_count % 50 == 0:  # Log every 50 callbacks
+            level_db = 20 * np.log10(max(level, 1e-10))
+            self.logger.info(f"Audio received: {level_db:.1f} dB, shape: {audio_data.shape}")
+        
         # Calculate FFT
         if audio_data.ndim > 1:
             # Use left channel for FFT
