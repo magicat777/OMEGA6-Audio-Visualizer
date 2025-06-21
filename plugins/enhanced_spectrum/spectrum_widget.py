@@ -59,6 +59,13 @@ class EnhancedSpectrumWidget(VisualizationPlugin):
         # Y-axis from 0 to db_range for positive bar heights
         self.plot_widget.setYRange(0, self.db_range)
         self.plot_widget.setXRange(np.log10(self.min_freq), np.log10(self.max_freq))
+        
+        # Set custom tick labels for frequency axis
+        x_ticks = []
+        for freq in [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000]:
+            if self.min_freq <= freq <= self.max_freq:
+                x_ticks.append((np.log10(freq), str(freq)))
+        self.plot_widget.getAxis('bottom').setTicks([x_ticks])
 
         # Create bar items
         self.create_frequency_bins()
@@ -225,6 +232,8 @@ class EnhancedSpectrumWidget(VisualizationPlugin):
         if self._fft_count % 50 == 0:
             max_val = np.max(fft_data)
             self.logger.info(f"Enhanced Spectrum: FFT data size: {fft_data.shape}, max: {max_val:.2f}")
+            if self._fft_count == 50:  # Log frequency range once
+                self.logger.info(f"Frequency range: {frequencies[0]:.1f} - {frequencies[-1]:.1f} Hz")
 
         # Convert to dB
         magnitude = np.abs(fft_data)
@@ -272,10 +281,21 @@ class EnhancedSpectrumWidget(VisualizationPlugin):
         display_spectrum = np.maximum(self.spectrum_data, self.db_floor)
         display_peaks = np.maximum(self.peak_data, self.db_floor)
 
-        # Update bar heights - convert from dB scale to display height
-        # Since spectrum_data is negative dB values, we need to normalize
-        spectrum_heights = (display_spectrum - self.db_floor) / self.db_range * self.db_range
-        peak_heights = (display_peaks - self.db_floor) / self.db_range * self.db_range
+        # Convert from dB to linear scale for display (0 to db_range)
+        # spectrum_data is in dB (negative values), convert to positive height
+        spectrum_heights = display_spectrum - self.db_floor  # This gives 0 to db_range
+        peak_heights = display_peaks - self.db_floor
+        
+        # Debug occasional updates
+        if hasattr(self, '_update_count'):
+            self._update_count += 1
+        else:
+            self._update_count = 0
+            
+        if self._update_count % 100 == 0:
+            non_zero = np.sum(spectrum_heights > 1)  # Count bars above 1 dB
+            if non_zero > 0:
+                self.logger.info(f"Spectrum update: {non_zero} bars active, max height: {np.max(spectrum_heights):.1f}")
         
         # Update the actual bar data
         self.spectrum_bars.setOpts(height=spectrum_heights)
