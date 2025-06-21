@@ -22,6 +22,9 @@ from .plugin_manager import PluginManager
 
 class OMEGA6App(QtWidgets.QMainWindow):
     """Main OMEGA6 application window"""
+    
+    # Signal for thread-safe plugin updates
+    audio_data_ready = QtCore.pyqtSignal(np.ndarray, np.ndarray, np.ndarray)
 
     def __init__(self):
         super().__init__()
@@ -40,6 +43,9 @@ class OMEGA6App(QtWidgets.QMainWindow):
 
         # Initialize plugin manager
         self.plugin_manager = PluginManager()
+        
+        # Connect signal for thread-safe updates
+        self.audio_data_ready.connect(self._update_plugins_safe)
 
         # Create UI
         self._create_ui()
@@ -110,10 +116,18 @@ class OMEGA6App(QtWidgets.QMainWindow):
         fft_data = np.fft.rfft(windowed_data)
         frequencies = np.fft.rfftfreq(len(channel_data), 1 / sample_rate)
 
-        # Update all plugins
-        self.plugin_manager.update_all_plugins(
-            audio_data=audio_data, fft_data=np.abs(fft_data), frequencies=frequencies
-        )
+        # Emit signal for thread-safe plugin update
+        self.audio_data_ready.emit(audio_data, np.abs(fft_data), frequencies)
+
+    @QtCore.pyqtSlot(np.ndarray, np.ndarray, np.ndarray)
+    def _update_plugins_safe(self, audio_data: np.ndarray, fft_data: np.ndarray, frequencies: np.ndarray):
+        """Update plugins safely in the main thread"""
+        try:
+            self.plugin_manager.update_all_plugins(
+                audio_data=audio_data, fft_data=fft_data, frequencies=frequencies
+            )
+        except Exception as e:
+            self.logger.error(f"Error updating plugins: {e}")
 
     def _create_ui(self):
         """Create the main UI layout"""
