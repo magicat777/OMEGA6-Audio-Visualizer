@@ -56,29 +56,32 @@ class EnhancedSpectrumWidget(VisualizationPlugin):
         # Configure axes
         self.plot_widget.setLabel("left", "Level", units="dB")
         self.plot_widget.setLabel("bottom", "Frequency", units="Hz")
-        self.plot_widget.setYRange(self.db_floor, 0)
+        # Y-axis from 0 to db_range for positive bar heights
+        self.plot_widget.setYRange(0, self.db_range)
         self.plot_widget.setXRange(np.log10(self.min_freq), np.log10(self.max_freq))
 
         # Create bar items
         self.create_frequency_bins()
 
-        # Main spectrum bars
+        # Main spectrum bars - initialize with zeros (will be updated when data arrives)
         self.spectrum_bars = pg.BarGraphItem(
             x=self.bar_positions,
-            height=self.spectrum_data,
+            height=np.zeros_like(self.bar_positions),
             width=self.bar_widths,
             brush=self.spectrum_color,
             pen=None,
+            y0=0  # Base at 0
         )
         self.plot_widget.addItem(self.spectrum_bars)
 
         # Peak hold bars
         self.peak_bars = pg.BarGraphItem(
             x=self.bar_positions,
-            height=self.peak_data,
+            height=np.zeros_like(self.bar_positions),
             width=self.bar_widths,
             brush=self.peak_color,
             pen=None,
+            y0=0  # Base at 0
         )
         self.plot_widget.addItem(self.peak_bars)
 
@@ -220,7 +223,8 @@ class EnhancedSpectrumWidget(VisualizationPlugin):
         self._fft_count += 1
         
         if self._fft_count % 50 == 0:
-            self.logger.info(f"Enhanced Spectrum: Received FFT data, size: {fft_data.shape}")
+            max_val = np.max(fft_data)
+            self.logger.info(f"Enhanced Spectrum: FFT data size: {fft_data.shape}, max: {max_val:.2f}")
 
         # Convert to dB
         magnitude = np.abs(fft_data)
@@ -268,11 +272,16 @@ class EnhancedSpectrumWidget(VisualizationPlugin):
         display_spectrum = np.maximum(self.spectrum_data, self.db_floor)
         display_peaks = np.maximum(self.peak_data, self.db_floor)
 
-        # Update bar heights
-        self.spectrum_bars.setOpts(height=display_spectrum - self.db_floor)
+        # Update bar heights - convert from dB scale to display height
+        # Since spectrum_data is negative dB values, we need to normalize
+        spectrum_heights = (display_spectrum - self.db_floor) / self.db_range * self.db_range
+        peak_heights = (display_peaks - self.db_floor) / self.db_range * self.db_range
+        
+        # Update the actual bar data
+        self.spectrum_bars.setOpts(height=spectrum_heights)
 
         if self.show_peak_hold:
-            self.peak_bars.setOpts(height=display_peaks - self.db_floor)
+            self.peak_bars.setOpts(height=peak_heights)
 
     def _update_visualization_size(self):
         """Handle resize events"""
