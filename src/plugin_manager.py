@@ -107,10 +107,14 @@ class PluginManager:
 
     def update_all_plugins(self, audio_data=None, fft_data=None, frequencies=None):
         """Update all active plugins with new data"""
+        if not self.plugin_instances:
+            self.logger.warning("No plugin instances to update!")
+            return
+            
         for name, instance in self.plugin_instances.items():
             try:
                 if audio_data is not None:
-                    instance.update_audio(audio_data)
+                    instance.update_audio(audio_data, self.sample_rate if hasattr(self, 'sample_rate') else 48000)
                 if fft_data is not None and frequencies is not None:
                     instance.update_fft(fft_data, frequencies)
             except Exception as e:

@@ -214,6 +214,14 @@ class EnhancedSpectrumWidget(VisualizationPlugin):
         if fft_data.size == 0:
             return
 
+        # Debug: Log that we're receiving FFT data
+        if not hasattr(self, '_fft_count'):
+            self._fft_count = 0
+        self._fft_count += 1
+        
+        if self._fft_count % 50 == 0:
+            self.logger.info(f"Enhanced Spectrum: Received FFT data, size: {fft_data.shape}")
+
         # Convert to dB
         magnitude = np.abs(fft_data)
         db_data = 20 * np.log10(np.maximum(magnitude, 1e-10))

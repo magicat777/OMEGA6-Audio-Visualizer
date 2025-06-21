@@ -98,11 +98,17 @@ class OMEGA6App(QtWidgets.QMainWindow):
         # Calculate FFT
         if audio_data.ndim > 1:
             # Use left channel for FFT
-            fft_data = np.fft.rfft(audio_data[:, 0] * np.hanning(len(audio_data)))
+            channel_data = audio_data[:, 0]
         else:
-            fft_data = np.fft.rfft(audio_data * np.hanning(len(audio_data)))
-
-        frequencies = np.fft.rfftfreq(len(audio_data), 1 / sample_rate)
+            channel_data = audio_data
+            
+        # Apply window function
+        window = np.hanning(len(channel_data))
+        windowed_data = channel_data * window
+        
+        # Calculate FFT
+        fft_data = np.fft.rfft(windowed_data)
+        frequencies = np.fft.rfftfreq(len(channel_data), 1 / sample_rate)
 
         # Update all plugins
         self.plugin_manager.update_all_plugins(
@@ -317,8 +323,12 @@ class OMEGA6App(QtWidgets.QMainWindow):
     def _add_plugin_widget(self, name: str, plugin_class):
         """Add a plugin widget to the UI"""
         try:
-            widget = plugin_class()
-            self._add_dock_widget(f"OMEGA6: {name}", widget)
+            # Create plugin instance through plugin manager
+            widget = self.plugin_manager.create_plugin_instance(name)
+            if widget:
+                self._add_dock_widget(f"OMEGA6: {name}", widget)
+            else:
+                self.logger.error(f"Failed to create plugin instance: {name}")
         except Exception as e:
             self.logger.error(f"Failed to create plugin widget {name}: {e}")
 
