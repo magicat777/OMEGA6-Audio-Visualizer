@@ -35,9 +35,9 @@ class EnhancedSpectrumWidget(VisualizationPlugin):
         self.peak_hold_time = 3.0  # seconds
         self.averaging_factor = 0.8
 
-        # Data arrays
-        self.spectrum_data = np.zeros(self.num_bars)
-        self.peak_data = np.zeros(self.num_bars)
+        # Data arrays - initialize with db_floor
+        self.spectrum_data = np.full(self.num_bars, self.db_floor)
+        self.peak_data = np.full(self.num_bars, self.db_floor)
         self.peak_timestamps = np.zeros(self.num_bars)
 
         # Colors
@@ -298,10 +298,22 @@ class EnhancedSpectrumWidget(VisualizationPlugin):
                 self.logger.info(f"Spectrum update: {non_zero} bars active, max height: {np.max(spectrum_heights):.1f}")
         
         # Update the actual bar data
-        self.spectrum_bars.setOpts(height=spectrum_heights)
-
-        if self.show_peak_hold:
-            self.peak_bars.setOpts(height=peak_heights)
+        # PyQtGraph BarGraphItem expects height as array or list
+        try:
+            # Ensure heights are numpy arrays with correct shape
+            if spectrum_heights.size == len(self.bar_positions):
+                # Update spectrum bars
+                self.spectrum_bars.setOpts(height=spectrum_heights)
+                
+                if self.show_peak_hold:
+                    self.peak_bars.setOpts(height=peak_heights)
+                    
+                # Force a redraw if needed
+                self.plot_widget.update()
+            else:
+                self.logger.error(f"Height array size mismatch: {spectrum_heights.size} vs {len(self.bar_positions)}")
+        except Exception as e:
+            self.logger.error(f"Error updating bar display: {e}")
 
     def _update_visualization_size(self):
         """Handle resize events"""
